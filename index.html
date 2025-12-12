@@ -1,82 +1,105 @@
-<!--
-Telegram WebApp Shop - single-file demo
-- Clean HTML/CSS/JS (no frameworks)
-- Responsive: phone / tablet / desktop
-- Product grid, categories, product modal
-- "Add" button sends numeric code to Telegram bot via Telegram.WebApp.sendData
-
-How to use:
-1) Put this file into your GitHub Pages repo (e.g. docs/index.html or main branch root) and enable Pages.
-2) In your bot: set menu Web App button to https://<your-username>.github.io/<repo>/index.html
-3) The site calls Telegram.WebApp.sendData({...}) when user presses Add. The bot receives it via web_app_data.
-
-Product structure in JS: products = [{id, code, title, price, img, category, colors, sizes}]
-- `code` is the numeric value the bot's search expects (e.g., 90)
-
-Bot example (pyTelegramBotAPI):
-@bot.message_handler(content_types=['web_app_data'])
-def handler(msg):
-    data = json.loads(msg.web_app_data.data)
-    # data = {action:'add', code:90, productId:1, user: {...}}
-    # then bot performs logic using numeric code
-
--->
-
 <!doctype html>
 <html lang="ru">
+
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Shop — WebApp Demo</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>Shop — WebApp</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
 <style>
 :root{
-  --bg:#f5f6f7; --card:#ffffff; --muted:#8b8f94; --accent:#f6bb42; --radius:20px; --shadow:0 6px 18px rgba(17,24,39,0.08);
+  --bg:#f5f6f7; --card:#ffffff; --muted:#8b8f94; --accent:#f6bb42;
+  --radius:20px; --shadow:0 6px 18px rgba(17,24,39,0.08);
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#0f1724;background:linear-gradient(180deg,var(--bg),#fff);}
-.container{max-width:1100px;margin:24px auto;padding:16px}
-.header{display:flex;align-items:center;gap:12px}
-.header h1{font-size:34px;margin:0}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:18px}
-.card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:14px;overflow:hidden}
-.card .img{height:160px;background:#f3f4f6;border-radius:12px;display:flex;align-items:center;justify-content:center}
+html,body{
+  margin:0; padding:0; height:100%;
+  font-family:Inter,system-ui; background:var(--bg);
+}
+
+/* Layout */
+.container{max-width:1100px;margin:24px auto;padding:16px;}
+.header{display:flex;align-items:center;gap:12px;}
+.header h1{margin:0;font-size:32px}
+
+/* Grid */
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:18px;margin-top:18px;
+}
+.card{
+  background:var(--card);border-radius:18px;box-shadow:var(--shadow);
+  padding:14px;cursor:pointer;
+}
+.card .img{
+  height:180px;background:#f3f4f6;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+}
 .card img{max-width:100%;max-height:100%;object-fit:contain}
-.price{font-weight:700;font-size:20px;margin:12px 0;color:#0b1720}
+.price{font-weight:700;font-size:20px;margin:12px 0;}
 .title{color:var(--muted);font-size:15px}
-.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;border:1px solid #e6e6e9;background:#fff;cursor:pointer}
-.bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;display:flex;gap:12px;background:transparent}
-.nav-btn{width:72px;height:56px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center}
-.nav-active{background:var(--accent);color:#fff}
-.modal-back{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:flex-end;justify-content:center}
-.modal{width:100%;max-width:720px;background:var(--card);border-radius:20px 20px 0 0;padding:18px}
-.modal .large-img{height:340px;background:#f3f4f6;border-radius:12px;display:flex;align-items:center;justify-content:center}
+
+/* Categories */
+.filter-row{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}
+.category{
+  padding:8px 12px;border-radius:12px;background:#fff;border:1px solid #eee;cursor:pointer;
+}
+.category.active{
+  border-color:var(--accent);box-shadow:0 4px 12px rgba(246,187,66,0.2)
+}
+
+/* Modal */
+.modal-back{
+  position:fixed;inset:0;background:rgba(0,0,0,0.45);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.modal{
+  width:100%;max-width:720px;background:var(--card);
+  border-radius:20px 20px 0 0;padding:18px;
+}
+.large-img{
+  height:320px;background:#f3f4f6;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+}
 .row{display:flex;gap:10px;align-items:center}
-.chips{display:flex;gap:10px;margin-top:12px}
-.chip{padding:10px 14px;border-radius:14px;border:1px solid #e6e6e9}
-.add-btn{width:100%;padding:14px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-weight:700;font-size:16px;cursor:pointer;margin-top:12px}
-.filter-row{display:flex;gap:10px;align-items:center;margin-top:18px}
-.category{padding:8px 12px;border-radius:12px;background:#fff;border:1px solid #eee;cursor:pointer}
-.category.active{border-color:var(--accent);box-shadow:0 6px 12px rgba(246,187,66,0.16)}
-@media(min-width:900px){ .grid{grid-template-columns:repeat(3,1fr);} .container{padding:24px} }
-@media(max-width:420px){ .grid{grid-template-columns:repeat(1,1fr);} .header h1{font-size:28px} .card .img{height:220px}}
+.chips{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.chip{
+  padding:10px 14px;border-radius:14px;border:1px solid #e6e6e9;cursor:pointer;
+}
+.chip.active{border-color:var(--accent);background:#fff4d0}
+
+.add-btn{
+  width:100%;padding:14px;border-radius:14px;
+  background:var(--accent);border:none;color:#fff;
+  font-weight:700;font-size:16px;cursor:pointer;margin-top:12px;
+}
+
+/* Bottom Nav */
+.bottom-nav{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:12px;display:flex;gap:12px;
+}
+.nav-btn{
+  width:72px;height:56px;border-radius:14px;
+  background:var(--card);box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:center;
+}
+.nav-active{background:var(--accent);color:#fff}
 </style>
 </head>
+
 <body>
-<div class="container" id="app">
+<div class="container">
   <div class="header">
-    <div style="font-size:28px">🔥</div>
+    <div style="font-size:30px">🔥</div>
     <h1>Новые поступления</h1>
   </div>
 
   <div class="filter-row" id="categories"></div>
-
   <div class="grid" id="productGrid"></div>
-
 </div>
 
-<!-- bottom nav -->
 <div class="bottom-nav">
   <div class="nav-btn nav-active">🏠</div>
   <div class="nav-btn">🔍</div>
@@ -84,30 +107,36 @@ html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helv
   <div class="nav-btn">👜</div>
 </div>
 
-<!-- modal -->
+<!-- Modal -->
 <div class="modal-back" id="modalBack">
-  <div class="modal" role="dialog" aria-modal="true">
+  <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="font-weight:800;font-size:20px" id="mTitle">Название</div>
-      <button id="closeModal" class="btn">✖</button>
+      <div style="font-weight:800;font-size:20px" id="mTitle"></div>
+      <button id="closeModal" class="chip">✖</button>
     </div>
-    <div class="large-img" id="mImg"><img src="" alt=""></div>
-    <div style="margin-top:12px;font-weight:700;font-size:20px" id="mPrice">200 000 UZS</div>
-    <div style="color:var(--muted);margin-top:10px">Выберите цвет</div>
+
+    <div class="large-img" id="mImg"></div>
+    <div style="margin-top:12px;font-weight:700;font-size:20px" id="mPrice"></div>
+
+    <div style="color:var(--muted);margin-top:10px">Цвет</div>
     <div class="chips" id="mColors"></div>
-    <div style="color:var(--muted);margin-top:12px">Выберите размер</div>
+
+    <div style="color:var(--muted);margin-top:12px">Размер</div>
     <div class="chips" id="mSizes"></div>
+
     <button id="addToBot" class="add-btn">Добавить</button>
   </div>
 </div>
 
 <script>
-// Sample product data
+// ===============================
+// PRODUCT DATA
+// ===============================
 const products = [
-  {id:1, code:90, title:'Клетчатая рубашка', price:200000, img:'https://images.unsplash.com/photo-1551854838-8c9f3db3b3b1?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=7b7b9a1b', category:'Рубашки', colors:['Blue','Light blue'], sizes:['L','XL','XXL']},
-  {id:2, code:101, title:'Худи', price:350000, img:'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=8fa5d1f6', category:'Худи', colors:['Black'], sizes:['M','L','XL']},
-  {id:3, code:102, title:'Штаны', price:350000, img:'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=8fa5d1f6', category:'Штаны', colors:['Black','Grey'], sizes:['M','L','XL']},
-  {id:4, code:103, title:'Кепка', price:150000, img:'https://images.unsplash.com/photo-1520975698514-3094b1d6e3d7?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=abcd', category:'Аксессуары', colors:['Red','Beige'], sizes:['One size']}
+  {id:1, code:90, title:'Клетчатая рубашка', price:200000, img:'https://images.unsplash.com/photo-1551854838-8c9f3db3b3b1', category:'Рубашки', colors:['Blue','Light blue'], sizes:['L','XL','XXL']},
+  {id:2, code:101, title:'Худи',              price:350000, img:'https://images.unsplash.com/photo-1541099649105-f69ad21f3246', category:'Худи', colors:['Black'], sizes:['M','L','XL']},
+  {id:3, code:102, title:'Штаны',             price:350000, img:'https://images.unsplash.com/photo-1541099649105-f69ad21f3246', category:'Штаны', colors:['Black','Grey'], sizes:['M','L','XL']},
+  {id:4, code:103, title:'Кепка',             price:150000, img:'https://images.unsplash.com/photo-1520975698514-3094b1d6e3d7', category:'Аксессуары', colors:['Red','Beige'], sizes:['One size']}
 ];
 
 const categories = ['Все','Худи','Рубашки','Штаны','Аксессуары'];
@@ -116,35 +145,53 @@ let activeCategory = 'Все';
 const productGrid = document.getElementById('productGrid');
 const categoriesWrap = document.getElementById('categories');
 
+let currentProduct = null;
+let selectedColor = null;
+let selectedSize = null;
+
+// ===============================
+// CATEGORY RENDER
+// ===============================
 function renderCategories(){
   categoriesWrap.innerHTML = '';
   categories.forEach(cat=>{
     const el = document.createElement('div');
-    el.className = 'category' + (cat===activeCategory? ' active':'');
+    el.className = 'category' + (cat===activeCategory ? ' active' : '');
     el.textContent = cat;
-    el.onclick = ()=>{ activeCategory = cat; renderCategories(); renderProducts(); }
+    el.onclick = () => {
+      activeCategory = cat;
+      renderCategories();
+      renderProducts();
+    };
     categoriesWrap.appendChild(el);
   });
 }
 
+// ===============================
+// PRODUCT GRID
+// ===============================
 function renderProducts(){
   productGrid.innerHTML = '';
-  const list = products.filter(p=> activeCategory==='Все' || p.category===activeCategory);
+  const list = products.filter(p => activeCategory==='Все' || p.category===activeCategory);
+
   list.forEach(p=>{
-    const card = document.createElement('div'); card.className='card';
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    card.onclick = () => openModal(p.id);
+
     card.innerHTML = `
-      <div class="img"><img src="${p.img}" alt="${p.title}"></div>
+      <div class="img"><img src="${p.img}" alt=""></div>
       <div class="price">${p.price.toLocaleString('ru-RU')} UZS</div>
       <div class="title">${p.title}</div>
-      <div style="margin-top:10px;display:flex;gap:10px">
-        <button class="btn" onclick='openModal(${p.id})'>Открыть</button>
-      </div>
     `;
     productGrid.appendChild(card);
   });
 }
 
-// Modal logic
+// ===============================
+// MODAL
+// ===============================
 const modalBack = document.getElementById('modalBack');
 const mTitle = document.getElementById('mTitle');
 const mImg = document.getElementById('mImg');
@@ -152,52 +199,87 @@ const mPrice = document.getElementById('mPrice');
 const mColors = document.getElementById('mColors');
 const mSizes = document.getElementById('mSizes');
 const addToBot = document.getElementById('addToBot');
-let currentProduct = null;
 
 function openModal(id){
   currentProduct = products.find(p=>p.id===id);
-  if(!currentProduct) return;
-  mTitle.textContent = currentProduct.title + ' • ' + currentProduct.price.toLocaleString('ru-RU') + ' UZS';
-  mImg.innerHTML = `<img src="${currentProduct.img}" alt="${currentProduct.title}">`;
-  mPrice.textContent = currentProduct.price.toLocaleString('ru-RU') + ' UZS';
+  selectedColor = null;
+  selectedSize = null;
+
+  mTitle.textContent = currentProduct.title;
+  mImg.innerHTML = `<img src="${currentProduct.img}" style="max-width:100%;max-height:100%">`;
+  mPrice.textContent = currentProduct.price.toLocaleString('ru-RU') + " UZS";
+
+  // Colors
   mColors.innerHTML = '';
-  currentProduct.colors.forEach(c=>{ const el=document.createElement('div'); el.className='chip'; el.textContent=c; mColors.appendChild(el); });
+  currentProduct.colors.forEach(c=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = c;
+    chip.onclick = () => {
+      selectedColor = c;
+      [...mColors.children].forEach(x=>x.classList.remove('active'));
+      chip.classList.add('active');
+    };
+    mColors.appendChild(chip);
+  });
+
+  // Sizes
   mSizes.innerHTML = '';
-  currentProduct.sizes.forEach(s=>{ const el=document.createElement('div'); el.className='chip'; el.textContent=s; mSizes.appendChild(el); });
+  currentProduct.sizes.forEach(s=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = s;
+    chip.onclick = () => {
+      selectedSize = s;
+      [...mSizes.children].forEach(x=>x.classList.remove('active'));
+      chip.classList.add('active');
+    };
+    mSizes.appendChild(chip);
+  });
+
   modalBack.style.display = 'flex';
 }
 
-document.getElementById('closeModal').onclick = ()=>{ modalBack.style.display='none'; }
-modalBack.addEventListener('click', (e)=>{ if(e.target===modalBack) modalBack.style.display='none'; });
+document.getElementById('closeModal').onclick = () => {
+  modalBack.style.display = 'none';
+};
+modalBack.onclick = (e)=>{
+  if(e.target === modalBack){
+    modalBack.style.display = 'none';
+  }
+};
 
-// Telegram WebApp integration
-const isTelegram = !!window.Telegram && !!window.Telegram.WebApp;
+// ===============================
+// TELEGRAM WEBAPP SEND DATA
+// ===============================
+const isTelegram = window.Telegram?.WebApp;
+
 if(isTelegram){
-  const tg = window.Telegram.WebApp;
-  tg.ready();
-  // Optional: get user info
-  const user = tg.initDataUnsafe && tg.initDataUnsafe.user;
-  console.log('Telegram user (init):', user);
+  window.Telegram.WebApp.ready();
 }
 
 addToBot.onclick = ()=>{
   if(!currentProduct) return;
-  const payload = { action:'add', productId: currentProduct.id, code: currentProduct.code };
-  if(isTelegram){
-    try{ window.Telegram.WebApp.sendData(JSON.stringify(payload));
-      // also close webapp optionally
-      // window.Telegram.WebApp.close();
-      // show confirmation for user
-      alert('Отправлено в бот: код=' + currentProduct.code);
-    }catch(e){ console.error(e); alert('Ошибка отправки в Telegram'); }
-  }else{
-    // not inside Telegram - fallback for testing
-    console.log('WEBAPP SEND (fallback):', payload);
-    alert('Это демонстрация. В Telegram нажмите кнопку Add, чтобы отправить код:' + currentProduct.code);
-  }
-}
 
-renderCategories(); renderProducts();
+  const payload = {
+    action: 'add',
+    productId: currentProduct.id,
+    code: currentProduct.code,
+    color: selectedColor,
+    size: selectedSize
+  };
+
+  if(isTelegram){
+    Telegram.WebApp.sendData(JSON.stringify(payload));
+    Telegram.WebApp.close();
+  }else{
+    alert("WebApp работает только внутри Telegram.\nОтправка:"+JSON.stringify(payload));
+  }
+};
+
+// ===============================
+renderCategories();
+renderProducts();
 </script>
 </body>
 </html>
